@@ -651,9 +651,12 @@
         if (!text) return text;
 
         if (settings.autoDetect) {
-            const detectedId = detectScript(text);
-            if (detectedId) return romanizeByScript(text, detectedId);
-            return text;
+            return text.split(/(\s+|[,،.?!:;()"'-]+)/).map(token => {
+                if (!/\S/.test(token) || !ANY_INDIAN.test(token)) return token;
+                const detectedId = detectScript(token);
+                if (detectedId) return romanizeByScript(token, detectedId);
+                return token;
+            }).join("");
         }
 
         let result = text;
