@@ -2,6 +2,19 @@
 
 A Spicetify extension that romanizes Indian script lyrics into phonetic English directly in Spotify's lyrics panel.
 
+## Why I built this
+
+India has so many different languages and scripts. A lot of us love listening to songs from other regions—like a Hindi speaker vibing to a Tamil track—but we can't read the lyrics. There's also a huge diaspora that grew up speaking their mother tongue but never learned to read the script, plus global fans who just want to sing along to AR Rahman or Arijit Singh. 
+
+Spotify gives us lyrics, but if you don't know the script, it doesn't really help. This extension fixes that by converting all those different Indian scripts into standard English phonetics in real-time. As long as you can read English, you can finally sing along to any Indian song, no matter what script it's originally in.
+
+### Who this is for:
+- You speak the language but never really learned the script.
+- You're part of the diaspora and grew up speaking your mother tongue at home, but can't read it.
+- You love Indian music (AR Rahman, Arijit Singh, etc.) and just want to sing along.
+- You're trying to learn an Indian language and want some phonetic reading practice.
+- You know Hindi but can't read regional scripts like Tamil, Telugu, or Bengali.
+
 ![Settings Panel](assets/final_menu.png)
 
 ## Supported Scripts
