@@ -19,6 +19,8 @@
         { id: "urdu", label: "Urdu (Arabic)", regex: /[؀-ۿ]/ },
     ];
 
+    const ANY_INDIAN = /[ऀ-ॿ਀-੿ঀ-৿઀-૿଀-୿஀-௿ఀ-౿ಀ-೿ഀ-ൿ؀-ۿ]/;
+
     const devanagariMap = {
 
         "अ": "a", "आ": "aa", "इ": "i", "ई": "ee",
@@ -413,6 +415,27 @@
         "تین": "teen"
     };
 
+    const TAMIL_PHONETIC_DICT = {
+        "இல்லை": "illai",
+        "என்ன": "enna",
+        "நான்": "naan",
+        "நீ": "nee",
+        "எனக்கு": "enakku",
+        "உனக்கு": "unakku",
+        "காதல்": "kaadhal",
+        "நீயே": "neeyae",
+    };
+
+    const TELUGU_PHONETIC_DICT = {
+        "హే": "hae",
+        "నీ": "nee",
+        "అయ్య": "ayya",
+        "చెయ్య": "cheyya",
+        "జెయ్య": "jeyya",
+        "జంబలికే": "jambalike",
+        "జంబాలికే": "jambaalike",
+    };
+
     const STORAGE_KEY = "indian-romanizer-settings";
 
     function defaultSettings() {
@@ -616,9 +639,28 @@
     }
 
     function romanizeTamilPhonetic(text) {
-        let rom = romanizeIndic(text, tamilMap, TAMIL_VIRAMA);
-        rom = rom.replace(/([^td])du\b/g, "$1de");
-        return rom;
+        const tokens = text.split(/([\s,،.?!:;()"'-]+)/);
+        const out = tokens.map(token => {
+            if (TAMIL_PHONETIC_DICT[token] !== undefined) return TAMIL_PHONETIC_DICT[token];
+            if (/[\u0B80-\u0BFF]/.test(token)) {
+                let rom = romanizeIndic(token, tamilMap, TAMIL_VIRAMA);
+                rom = rom.replace(/([^td])du\b/g, "$1de");
+                return rom;
+            }
+            return token;
+        });
+        return out.join("");
+    }
+
+    function romanizeTeluguPhonetic(text) {
+        const tokens = text.split(/([\s,،.?!:;()"'-]+)/);
+        return tokens.map(token => {
+            if (TELUGU_PHONETIC_DICT[token] !== undefined) return TELUGU_PHONETIC_DICT[token];
+            if (/[\u0C00-\u0C7F]/.test(token)) {
+                return romanizeIndic(token, teluguMap, TELUGU_VIRAMA);
+            }
+            return token;
+        }).join("");
     }
 
     function romanizeByScript(text, scriptId) {
@@ -629,7 +671,7 @@
             case "gujarati": return romanizeIndic(text, gujaratiMap, GUJARATI_VIRAMA);
             case "odia": return romanizeIndic(text, odiaMap, ODIA_VIRAMA);
             case "tamil": return romanizeTamilPhonetic(text);
-            case "telugu": return romanizeIndic(text, teluguMap, TELUGU_VIRAMA);
+            case "telugu": return romanizeTeluguPhonetic(text);
             case "kannada": return romanizeIndic(text, kannadaMap, KANNADA_VIRAMA);
             case "malayalam": return romanizeIndic(text, malayalamMap, MALAYALAM_VIRAMA);
             case "urdu": return romanizeUrduPhonetic(text);
@@ -642,8 +684,12 @@
         let bestId = null, bestCount = 0;
         for (const s of SCRIPTS) {
             const matches = (sample.match(new RegExp(s.regex.source, "g")) || []).length;
-            if (matches > bestCount) { bestCount = matches; bestId = s.id; }
+            if (matches > bestCount) {
+                bestCount = matches;
+                bestId = s.id;
+            }
         }
+        if (bestCount === 0) return null;
         return bestId;
     }
 
@@ -667,8 +713,6 @@
         }
         return result;
     }
-
-    const ANY_INDIAN = /[ऀ-ॿ਀-੿ঀ-৿઀-૿଀-୿஀-௿ఀ-౿ಀ-೿ഀ-ൿ؀-ۿ]/;
 
     function processTextNode(node) {
         const current = node.nodeValue;
@@ -728,12 +772,42 @@
         }
     }
 
+    function walkClearOrigCache(node) {
+        if (!node) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+            delete node._indianOrig;
+            return;
+        }
+        if (node.shadowRoot) walkClearOrigCache(node.shadowRoot);
+        for (let c = node.firstChild; c; c = c.nextSibling) walkClearOrigCache(c);
+    }
+
+    function clearLyricsOrigCache() {
+        const container = getLyricsContainer();
+        if (container) walkClearOrigCache(container);
+        else {
+            const main = document.querySelector("#main");
+            if (main) walkClearOrigCache(main);
+        }
+    }
+
     let observer = null;
+    let lyricsFlushPending = false;
+
+    function scheduleProcessLyrics() {
+        if (!settings.enabled) return;
+        if (lyricsFlushPending) return;
+        lyricsFlushPending = true;
+        queueMicrotask(() => {
+            lyricsFlushPending = false;
+            processLyrics();
+        });
+    }
 
     function startObserver() {
         if (observer) return;
         observer = new MutationObserver(() => {
-            if (settings.enabled) processLyrics();
+            scheduleProcessLyrics();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
@@ -920,7 +994,7 @@
                 background: rgba(255, 255, 255, 0.05);
             }
             .ir-check:active:not(:disabled) {
-                transform: scale(0.9);// Precomposed and decomposed forms for robust matching
+                transform: scale(0.9);
             }
             .ir-scripts-list {
                 max-height: 220px;
@@ -1080,10 +1154,10 @@
     }
 
     Spicetify.Player.addEventListener("songchange", () => {
-
-        if (settings.enabled) {
-            setTimeout(processLyrics, 800);
-        }
+        setTimeout(() => {
+            clearLyricsOrigCache();
+            if (settings.enabled) processLyrics();
+        }, 800);
     });
 
     function boot() {
