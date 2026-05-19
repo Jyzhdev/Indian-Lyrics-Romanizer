@@ -44,10 +44,6 @@ Spotify gives us lyrics, but if you don't know the script, it doesn't really hel
 - All settings persisted in `localStorage`
 - Original lyrics perfectly restored when toggled off
 
-## Previews
-
-### Devanagari (Hindi) Comparison
-![Devanagari Comparison](assets/final_hindi.png)
 
 ### Tamil Comparison
 ![Tamil Comparison](assets/final_tamil.png)
