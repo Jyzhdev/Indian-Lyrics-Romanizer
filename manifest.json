@@ -1,9 +1,9 @@
 {
   "name": "Indian Lyrics Romanizer",
   "description": "Romanizes Indian script lyrics (Hindi, Punjabi, Bengali, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam, Urdu) into phonetic English. Auto-detects script or lets you choose manually.",
-  "main": "indian-romanizer.js",
+  "main": "dist/indian-romanizer.js",
   "readme": "README.md",
-  "preview": "assets/preview.png",
+  "preview": "assets/final_menu.png",
   "authors": [
     {
       "name": "Jyzhdev",

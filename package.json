@@ -1,0 +1,14 @@
+{
+  "name": "indian-lyrics-romanizer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Spicetify extension that romanizes Indian-script lyrics in Spotify's lyrics panel",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --format=iife --outfile=dist/indian-romanizer.js",
+    "watch": "esbuild src/index.js --bundle --format=iife --outfile=dist/indian-romanizer.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
